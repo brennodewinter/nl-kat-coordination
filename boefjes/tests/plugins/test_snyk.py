@@ -33,10 +33,11 @@ def test_snyk_findings():
 
 
 def test_snyk_findings_severity_set():
-    """Verify that severity is set on Snyk finding types.
+    """Verify that severity and score are set on Snyk finding types.
 
     CVE findings do not carry severity/risk_score from Snyk — the CVE boefje
-    hydrates those from the authoritative source.
+    hydrates those from the authoritative source. Snyk findings keep both,
+    since Snyk is authoritative for its own findings.
     """
     oois = list(run(input_ooi, get_dummy_data("inputs/snyk-result-findings.json")))
 
@@ -51,6 +52,7 @@ def test_snyk_findings_severity_set():
     snyk_fts = [o for o in oois if isinstance(o, SnykFindingType)]
     assert len(snyk_fts) == 1
     assert snyk_fts[0].risk_severity == RiskLevelSeverity.HIGH
+    assert snyk_fts[0].risk_score == 7.4
 
 
 def test_snyk_html_parser(mocker):
@@ -69,9 +71,10 @@ def test_snyk_html_parser(mocker):
     assert len(output["vulnerabilities"]) == 12
     assert output["latest_version"] == "4.18.1"
 
-    # Check that severity is preserved
+    # Check that severity and cvss_score are preserved
     vuln = output["vulnerabilities"][0]
     assert vuln["severity"] == "high"
+    assert vuln["cvss_score"] is not None
     assert vuln["cve"] == "CVE-2026-4800"
     assert vuln["affected_versions"] == "<4.18.1"
 

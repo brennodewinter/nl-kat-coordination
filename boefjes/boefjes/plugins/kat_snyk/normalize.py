@@ -43,9 +43,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
             cve = vuln.get("cve")
             if cve and cve.startswith("CVE-"):
+                # CVEFindingType carries no score from Snyk — the CVE boefje
+                # hydrates risk_score/risk_severity from the authoritative source.
                 ft = CVEFindingType(id=cve)
             else:
-                ft = SnykFindingType(id=vuln["id"], risk_severity=severity)
+                ft = SnykFindingType(id=vuln["id"], risk_severity=severity, risk_score=vuln.get("cvss_score"))
             yield ft
             yield Finding(finding_type=ft.reference, ooi=pk_ooi, description=vuln["title"])
     else:
